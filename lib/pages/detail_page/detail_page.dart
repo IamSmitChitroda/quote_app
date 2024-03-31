@@ -9,8 +9,8 @@ class DetailPage extends StatefulWidget {
 }
 
 class _DetailPageState extends State<DetailPage> {
-  Color color = Colors.white;
-  double opacity = 1;
+  double backgroundOpacity = 1;
+  double fontOpacity = 1;
   String fonts = AppFonts.dancingScript.name;
 
   GlobalKey widgetKey = GlobalKey();
@@ -21,7 +21,9 @@ class _DetailPageState extends State<DetailPage> {
     ui.Image image = await boundary.toImage(
       pixelRatio: 15,
     );
-    ByteData? data = await image.toByteData();
+    ByteData? data = await image.toByteData(
+      format: ui.ImageByteFormat.png,
+    );
     Uint8List list = data!.buffer.asUint8List();
 
     Directory directory = await getTemporaryDirectory();
@@ -67,15 +69,14 @@ class _DetailPageState extends State<DetailPage> {
           ),
         );
       },
-      // onWillPop: () async => false,
       child: Scaffold(
         appBar: AppBar(
           title: const Text("Detail Page"),
           actions: [
             IconButton(
               onPressed: () {
-                opacity = 1;
-                color = Colors.white;
+                backgroundOpacity = 1;
+                Global.backgroundColor = Colors.white;
                 fonts = AppFonts.dancingScript.name;
                 setState(() {});
               },
@@ -86,7 +87,7 @@ class _DetailPageState extends State<DetailPage> {
         body: Column(
           children: [
             Expanded(
-              //Widget identify =>  pixels/boundary =>  Image  =>  Uint8List  =>  File
+              flex: 2,
               child: RepaintBoundary(
                 key: widgetKey,
                 child: Container(
@@ -94,7 +95,8 @@ class _DetailPageState extends State<DetailPage> {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     border: Border.all(),
-                    color: color.withOpacity(opacity),
+                    color:
+                        Global.backgroundColor.withOpacity(backgroundOpacity),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -103,11 +105,20 @@ class _DetailPageState extends State<DetailPage> {
                       SelectableText(
                         quote.quote,
                         style: TextStyle(
-                          fontSize: 20,
+                          color: Global.fontColor.withOpacity(fontOpacity),
+                          // fontSize: 27.75,
+                          fontSize: Global.fontSize,
                           fontFamily: fonts,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      Text("- ${quote.author}"),
+                      SelectableText(
+                        "- ${quote.author}",
+                        style: TextStyle(
+                          fontFamily: fonts,
+                          color: Global.fontColor.withOpacity(fontOpacity),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -115,47 +126,207 @@ class _DetailPageState extends State<DetailPage> {
             ),
             Expanded(
               //Column
-              child: Column(
+              child: ListView(
                 children: [
-                  const Text("Background color"),
-                  //Row
+                  // Background data-------------------------------------------------------------------------------------------------
+                  const Text(
+                    "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t----: Background color data :----",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  // BackGroundColour --------------------------------------------------------------------
                   SizedBox(
                     height: 50,
                     child: ListView(
                       scrollDirection: Axis.horizontal,
-                      children: List.generate(
-                        18,
-                        (index) => Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: GestureDetector(
-                            onTap: () {
-                              color = Colors.primaries[index];
-                              setState(() {});
-                            },
-                            child: CircleAvatar(
-                              radius: 20,
-                              backgroundColor: Colors.primaries[index],
+                      children: [
+                        // Colour Picker
+                        GestureDetector(
+                          onTap: () {
+                            Global.backgroundColor = Colors.grey;
+                            setState(() {});
+                          },
+                          child: CircleAvatar(
+                            radius: 20,
+                            child: IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: const Text("Pick a color"),
+                                      actions: [
+                                        ElevatedButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context),
+                                            child: const Text("Back"))
+                                      ],
+                                      content: SingleChildScrollView(
+                                        child: ColorPicker(
+                                          pickerColor: Global.backgroundColor,
+                                          paletteType: PaletteType.hueWheel,
+                                          onColorChanged: (Color value) {
+                                            Global.backgroundColor = value;
+                                            setState(() {});
+                                          },
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
                             ),
                           ),
                         ),
-                      ),
+                        ...List.generate(
+                          18,
+                          (index) => Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: GestureDetector(
+                              onTap: () {
+                                Global.backgroundColor =
+                                    Colors.primaries[index];
+                                setState(() {});
+                              },
+                              child: CircleAvatar(
+                                radius: 20,
+                                backgroundColor: Colors.primaries[index],
+                              ),
+                            ),
+                          ),
+                        )
+                      ],
                     ),
                   ),
+                  // BackgroundColourOpacityScrollbar
                   Padding(
                     padding: const EdgeInsets.all(10),
                     child: Slider(
-                      value: opacity,
+                      value: backgroundOpacity,
                       min: 0,
                       max: 1,
                       onChanged: (val) {
-                        opacity = val;
+                        backgroundOpacity = val;
                         setState(() {});
                       },
                     ),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: AppFonts.values
+                  // Font data-------------------------------------------------------------------------------------------------
+                  const Text(
+                    "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t----: Font color data :----",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  // BackGroundColour ---------------------------------------------------------------------
+                  SizedBox(
+                    height: 50,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        // Colour Picker
+                        GestureDetector(
+                          onTap: () {
+                            Global.fontColor = Colors.grey;
+                            setState(() {});
+                          },
+                          child: CircleAvatar(
+                            radius: 20,
+                            child: IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () {
+                                showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: const Text("Pick a color"),
+                                        content: SingleChildScrollView(
+                                          child: ColorPicker(
+                                            pickerColor: Global.fontColor,
+                                            paletteType: PaletteType.hueWheel,
+                                            onColorChanged: (Color value) {
+                                              Global.fontColor = value;
+                                              setState(() {});
+                                            },
+                                          ),
+                                        ),
+                                      );
+                                    });
+                              },
+                            ),
+                          ),
+                        ),
+                        ...List.generate(
+                          18,
+                          (index) => Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: GestureDetector(
+                              onTap: () {
+                                Global.fontColor = Colors.primaries[index];
+                                setState(() {});
+                              },
+                              child: CircleAvatar(
+                                radius: 20,
+                                backgroundColor: Colors.primaries[index],
+                              ),
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  // FontColourOpacityScrollbar
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Slider(
+                      value: fontOpacity,
+                      min: 0,
+                      max: 1,
+                      onChanged: (val) {
+                        fontOpacity = val;
+                        setState(() {});
+                      },
+                    ),
+                  ),
+                  // FontSizeScrollbar
+                  const Text(
+                    "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t ----: Font Size :----",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Slider(
+                      value: Global.fontSize,
+                      min: 1,
+                      max: 27.75,
+                      onChanged: (val) {
+                        Global.fontSize = val;
+                        setState(() {});
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListWheelScrollView(
+                  itemExtent: 50,
+                  clipBehavior: Clip.antiAlias,
+                  // useMagnifier: true,
+                  // magnification: 1,
+                  diameterRatio: 0.7,
+                  physics: const BouncingScrollPhysics(),
+                  children: [
+                    const Text(
+                      "----: Scroll down and select font :----",
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    ...AppFonts.values
                         .map(
                           (e) => TextButton(
                             onPressed: () {
@@ -165,61 +336,79 @@ class _DetailPageState extends State<DetailPage> {
                             child: Text(
                               "Abc",
                               style: TextStyle(
-                                fontSize: 18,
-                                fontFamily: e.name,
-                              ),
+                                  fontSize: 18,
+                                  fontFamily: e.name,
+                                  color: Colors.black),
                             ),
                           ),
                         )
                         .toList(),
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Clipboard.setData(
-                        ClipboardData(
-                          text: "${quote.quote}\n\n-${quote.author}",
-                        ),
-                      ).then((value) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Quote copied to clipboard !!"),
-                          ),
-                        );
-                      });
-                    },
-                    icon: const Icon(Icons.copy),
-                    label: const Text("Copy to clipboard"),
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () async {
-                      ImageGallerySaver.saveFile(
-                        (await getFileFromWidget()).path,
-                        isReturnPathOfIOS: true,
-                      ).then(
-                        (value) => ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Saved to gallery !!"),
-                          ),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.save_alt),
-                    label: const Text("Save to gallery"),
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () async {
-                      ShareExtend.share(
-                        (await getFileFromWidget()).path,
-                        "image",
-                      );
-                    },
-                    icon: const Icon(Icons.share),
-                    label: const Text("Share"),
-                  ),
-                ],
-              ),
+                  ]),
             ),
           ],
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () {
+            showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text("Options"),
+                    content: const Text("Select any one option."),
+                    actions: [
+                      // Share
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          ShareExtend.share(
+                            (await getFileFromWidget()).path,
+                            "image",
+                          );
+                        },
+                        icon: const Icon(Icons.share),
+                        label: const Text("Share"),
+                      ),
+                      // Save
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          ImageGallerySaver.saveFile(
+                            (await getFileFromWidget()).path,
+                            isReturnPathOfIOS: true,
+                          ).then(
+                            (value) =>
+                                ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Saved to gallery !!"),
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.save),
+                        label: const Text("Save"),
+                      ),
+                      // Copy
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Clipboard.setData(
+                            ClipboardData(
+                              text: "${quote.quote}\n\n-${quote.author}",
+                            ),
+                          ).then((value) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Quote copied to clipboard !!"),
+                              ),
+                            );
+                          });
+                        },
+                        icon: const Icon(Icons.copy),
+                        label: const Text("Copy"),
+                      ),
+                    ],
+                  );
+                });
+          },
+          label: const Text("Share"),
+          icon: const Icon(Icons.edit),
         ),
       ),
     );

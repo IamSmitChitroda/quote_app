@@ -38,7 +38,6 @@ Widget dialogueDemo({
               context: context,
               barrierDismissible: false,
               builder: (context) => Center(
-                //Custom (full-screen)
                 child: Container(
                   margin: const EdgeInsets.all(30),
                   color: Colors.blue,
